@@ -1,8 +1,7 @@
-import { initializeApp } from 'firebase/app';
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getApp, getApps, initializeApp } from 'firebase/app';
+import { GoogleAuthProvider, getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: 'AIzaSyC3EM-GMcPGualYaxaI7gdcviHAzUnnepw',
   authDomain: 'renz-ng.firebaseapp.com',
@@ -12,5 +11,9 @@ const firebaseConfig = {
   appId: '1:662591846722:web:faa0e63d8ac456471a70db',
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = !getApps.length ? initializeApp(firebaseConfig) : getApp;
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+export { auth, db, provider };
