@@ -5,7 +5,7 @@ import Loading from '@/components/Loading';
 import Login from '@/components/Login';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 import { useEffect } from 'react';
 
@@ -15,11 +15,15 @@ export default function Home() {
   useEffect(() => {
     const addUser = async () => {
       if (user) {
-        const docRef = await addDoc(collection(db, 'users'), {
-          email: user.email,
-          lastSeen: serverTimestamp(),
-          photoURL: user.photoURL,
-        });
+        const docRef = await setDoc(
+          doc(db, 'users', user.uid),
+          {
+            email: user.email,
+            lastSeen: serverTimestamp(),
+            photoURL: user.photoURL,
+          },
+          { merge: true }
+        );
       }
     };
     addUser();

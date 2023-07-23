@@ -7,17 +7,42 @@ import {
   BsThreeDotsVertical,
 } from 'react-icons/bs';
 import { FaUserCircle } from 'react-icons/fa';
-import { auth } from '../../firebase';
+import { auth, db } from '../../firebase';
+import { addDoc, collection, query, where } from 'firebase/firestore';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import Chat from './Chat';
 
 const Sidebar = () => {
-  const createChat = () => {
+  const [user] = useAuthState(auth);
+
+  const userChatRef = query(
+    collection(db, 'chats'),
+    where('users', 'array-contains', user?.email)
+  );
+  const [chatSnapshot] = useCollection(userChatRef);
+
+  const createChat = async () => {
     const input = prompt('Enter an email address of the user');
     if (!input) return;
 
-    if (EmailValidator.validate(input)) {
-      //add chats to db
+    if (
+      EmailValidator.validate(input) &&
+      !chatAlreadyExists(input) &&
+      input !== user?.email
+    ) {
+      await addDoc(collection(db, 'chats'), {
+        users: [user?.email, input],
+      });
     }
   };
+
+  const chatAlreadyExists = (recipientEmail: string) =>
+    !!chatSnapshot?.docs.find(
+      (chat) =>
+        chat.data().users.find((user: string) => user === recipientEmail)
+          ?.length > 0
+    );
 
   return (
     <aside className='bg-white'>
@@ -47,6 +72,9 @@ const Sidebar = () => {
         </button>
       </div>
       {/* lists of chats */}
+      {chatSnapshot?.docs.map((chat) => (
+        <Chat key={chat.id} users={chat.data().users} id={chat.id} />
+      ))}
     </aside>
   );
 };
